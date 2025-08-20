@@ -159,6 +159,58 @@
             max-height: 90vh;
             overflow-y: auto;
         }
+        
+        /* Collapsible sections */
+        .collapsible-section {
+            transition: all 0.3s ease;
+        }
+        
+        .collapsible-header {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            border-radius: 0.75rem;
+        }
+        
+        .collapsible-header:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+        
+        .collapsible-content {
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+        }
+        
+        .collapsible-content.expanded {
+            max-height: 2000px;
+            opacity: 1;
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .collapse-icon.rotated {
+            transform: rotate(180deg);
+        }
+        
+        .section-badge {
+            display: inline-block;
+            background-color: #4f46e5;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            margin-left: 0.5rem;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-2 md:p-4">
@@ -184,10 +236,17 @@
                 <div class="space-y-4">
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <h3 class="font-semibold text-blue-800 mb-2">🔐 Configuración de Sincronización</h3>
-                        <p class="text-blue-700 text-sm">
+                        <p class="text-blue-700 text-sm mb-2">
                             Para sincronizar automáticamente con GitHub, necesitas configurar tu repositorio y token de acceso.
                             Tus datos se guardarán como <code>horarios_encuestas_autosave.json</code> en la carpeta <code>data/</code>
                         </p>
+                        <div class="bg-green-100 border border-green-300 rounded-md p-3 mt-2">
+                            <h4 class="font-semibold text-green-800 text-sm mb-1">✨ Sincronización Inteligente</h4>
+                            <p class="text-green-700 text-xs">
+                                Una vez configurado en un dispositivo, los demás dispositivos solo necesitarán el <strong>token de acceso</strong>. 
+                                El usuario y repositorio se sincronizarán automáticamente desde GitHub.
+                            </p>
+                        </div>
                     </div>
                     
                     <div>
@@ -236,6 +295,25 @@
                         </button>
                     </div>
                     
+                    <!-- Quick Setup Option -->
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <h4 class="font-semibold text-purple-800 mb-2">⚡ Configuración Rápida</h4>
+                        <p class="text-purple-700 text-sm mb-3">
+                            Si ya tienes GitHub configurado en otro dispositivo, solo necesitas el token de acceso:
+                        </p>
+                        <div class="flex gap-2">
+                            <input type="password" id="quickToken" placeholder="Solo pega tu token aquí..." 
+                                   class="flex-1 px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm touch-button">
+                            <button onclick="quickGitHubSetup()" 
+                                    class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm touch-button">
+                                ⚡ Conectar
+                            </button>
+                        </div>
+                        <p class="text-xs text-purple-600 mt-2">
+                            El sistema intentará cargar automáticamente el usuario y repositorio desde GitHub
+                        </p>
+                    </div>
+                    
                     <div id="githubTestResult" class="hidden"></div>
                 </div>
             </div>
@@ -261,102 +339,143 @@
                 <span class="mobile-hidden">🍽️ Almuerzo: 12:00 PM - 1:00 PM</span>
             </div>
             
-            <!-- Search Bar -->
-            <div class="mt-4 md:mt-6 max-w-md mx-auto">
-                <div class="relative">
-                    <input type="text" id="searchParticipant" placeholder="🔍 Buscar participante por código (ej: P001)" 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center font-medium touch-button">
-                    <button onclick="searchParticipantSchedule()" 
-                            class="absolute right-2 top-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1 rounded-md text-sm transition-colors touch-button">
-                        Buscar
-                    </button>
+            <!-- Search Section -->
+            <div class="collapsible-section mt-4 md:mt-6">
+                <div class="collapsible-header flex items-center justify-center p-2" onclick="toggleSection('searchSection')">
+                    <h3 class="text-lg font-semibold text-gray-700">🔍 Búsqueda de Participantes</h3>
+                    <span class="section-badge">Minimizado</span>
+                    <span class="collapse-icon ml-2 text-gray-500">▼</span>
                 </div>
-                <div id="searchResult" class="mt-2 text-center text-sm"></div>
+                <div id="searchSection" class="collapsible-content collapsed">
+                    <div class="max-w-md mx-auto mt-4">
+                        <div class="relative">
+                            <input type="text" id="searchParticipant" placeholder="🔍 Buscar participante por código (ej: P001)" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center font-medium touch-button">
+                            <button onclick="searchParticipantSchedule()" 
+                                    class="absolute right-2 top-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1 rounded-md text-sm transition-colors touch-button">
+                                Buscar
+                            </button>
+                        </div>
+                        <div id="searchResult" class="mt-2 text-center text-sm"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Participant Management -->
         <div class="grid grid-cols-1 lg:grid-cols-2 mobile-grid-1 gap-4 md:gap-6 mb-4 md:mb-6">
             <!-- Individual Participant Management -->
-            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
-                <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-4">👤 Gestión Individual</h2>
-                <div class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" id="participantCode" placeholder="Código participante" 
-                               class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button">
-                        <input type="text" id="participantName" placeholder="Nombre" readonly
-                               class="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 touch-button">
+            <div class="bg-white rounded-xl shadow-lg collapsible-section">
+                <div class="collapsible-header p-4 md:p-6 pb-2" onclick="toggleSection('individualSection')">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg md:text-xl font-semibold text-gray-800">👤 Gestión Individual</h2>
+                        <div class="flex items-center">
+                            <span class="section-badge">Minimizado</span>
+                            <span class="collapse-icon ml-2 text-gray-500">▼</span>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" id="participantTutor" placeholder="Tutor" readonly
-                               class="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 touch-button">
-                        <input type="text" id="participantGroup" placeholder="Grupo etario" readonly
-                               class="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 touch-button">
+                </div>
+                <div id="individualSection" class="collapsible-content collapsed">
+                    <div class="px-4 md:px-6 pb-4 md:pb-6 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="participantCode" placeholder="Código participante" 
+                                   class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button">
+                            <input type="text" id="participantName" placeholder="Nombre" readonly
+                                   class="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 touch-button">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="participantTutor" placeholder="Tutor" readonly
+                                   class="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 touch-button">
+                            <input type="text" id="participantGroup" placeholder="Grupo etario" readonly
+                                   class="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 touch-button">
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
+                            <input type="tel" id="participantPhone" placeholder="(###) ###-#### - Celular 1 (OBLIGATORIO)" 
+                                   class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button"
+                                   maxlength="14" required>
+                            <input type="tel" id="participantPhone2" placeholder="(###) ###-#### - Celular 2 (opcional)" 
+                                   class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button"
+                                   maxlength="14">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <select id="daySelect" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button">
+                                <option value="">Seleccionar día</option>
+                                <option value="lunes">Lunes</option>
+                                <option value="martes">Martes</option>
+                                <option value="miercoles">Miércoles</option>
+                            </select>
+                            <select id="timeSelect" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button">
+                                <option value="">Seleccionar horario</option>
+                            </select>
+                        </div>
+                        <button onclick="addParticipant()" 
+                                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors touch-button">
+                            Agregar al Horario
+                        </button>
                     </div>
-                    <div class="grid grid-cols-1 gap-4">
-                        <input type="tel" id="participantPhone" placeholder="(###) ###-#### - Celular 1 (OBLIGATORIO)" 
-                               class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button"
-                               maxlength="14" required>
-                        <input type="tel" id="participantPhone2" placeholder="(###) ###-#### - Celular 2 (opcional)" 
-                               class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button"
-                               maxlength="14">
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <select id="daySelect" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button">
-                            <option value="">Seleccionar día</option>
-                            <option value="lunes">Lunes</option>
-                            <option value="martes">Martes</option>
-                            <option value="miercoles">Miércoles</option>
-                        </select>
-                        <select id="timeSelect" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button">
-                            <option value="">Seleccionar horario</option>
-                        </select>
-                    </div>
-                    <button onclick="addParticipant()" 
-                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors touch-button">
-                        Agregar al Horario
-                    </button>
                 </div>
             </div>
 
             <!-- Mass Participant Management -->
-            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
-                <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-4">👥 Gestión Masiva</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Formato: código,nombre,grupo_etario,tutor (uno por línea)
-                        </label>
-                        <textarea id="massParticipants" rows="6" placeholder="P001,Juan Pérez,G12-14,María García&#10;P002,Ana López,G9-11,Carlos Ruiz&#10;P003,Luis Torres,G15-18,Elena Martín"
-                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+            <div class="bg-white rounded-xl shadow-lg collapsible-section">
+                <div class="collapsible-header p-4 md:p-6 pb-2" onclick="toggleSection('massSection')">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg md:text-xl font-semibold text-gray-800">👥 Gestión Masiva</h2>
+                        <div class="flex items-center">
+                            <span class="section-badge">Minimizado</span>
+                            <span class="collapse-icon ml-2 text-gray-500">▼</span>
+                        </div>
                     </div>
-                    <button onclick="addMassParticipants()" 
-                            class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors touch-button">
-                        Cargar Participantes Masivamente
-                    </button>
+                </div>
+                <div id="massSection" class="collapsible-content collapsed">
+                    <div class="px-4 md:px-6 pb-4 md:pb-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Formato: código,nombre,grupo_etario,tutor (uno por línea)
+                            </label>
+                            <textarea id="massParticipants" rows="6" placeholder="P001,Juan Pérez,G12-14,María García&#10;P002,Ana López,G9-11,Carlos Ruiz&#10;P003,Luis Torres,G15-18,Elena Martín"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                        </div>
+                        <button onclick="addMassParticipants()" 
+                                class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors touch-button">
+                            Cargar Participantes Masivamente
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Schedule Grid -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-4 md:mb-6">
-            <!-- Desktop/Tablet Grid -->
-            <div class="hidden md:block">
-                <div class="grid grid-cols-4 bg-indigo-600 text-white">
-                    <div class="p-4 font-semibold text-center">Horario</div>
-                    <div class="p-4 font-semibold text-center">Lunes</div>
-                    <div class="p-4 font-semibold text-center">Martes</div>
-                    <div class="p-4 font-semibold text-center">Miércoles</div>
-                </div>
-                
-                <div id="scheduleGrid" class="divide-y divide-gray-200">
-                    <!-- Schedule rows will be generated here -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-4 md:mb-6 collapsible-section">
+            <div class="collapsible-header p-4 md:p-6 pb-2 bg-indigo-50" onclick="toggleSection('scheduleSection')">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg md:text-xl font-semibold text-gray-800">📅 Vista Previa de Horarios</h2>
+                    <div class="flex items-center">
+                        <span class="section-badge">Minimizado</span>
+                        <span class="collapse-icon ml-2 text-gray-500">▼</span>
+                    </div>
                 </div>
             </div>
+            
+            <div id="scheduleSection" class="collapsible-content collapsed">
+                <!-- Desktop/Tablet Grid -->
+                <div class="hidden md:block">
+                    <div class="grid grid-cols-4 bg-indigo-600 text-white">
+                        <div class="p-4 font-semibold text-center">Horario</div>
+                        <div class="p-4 font-semibold text-center">Lunes</div>
+                        <div class="p-4 font-semibold text-center">Martes</div>
+                        <div class="p-4 font-semibold text-center">Miércoles</div>
+                    </div>
+                    
+                    <div id="scheduleGrid" class="divide-y divide-gray-200">
+                        <!-- Schedule rows will be generated here -->
+                    </div>
+                </div>
 
-            <!-- Mobile Grid -->
-            <div class="md:hidden schedule-grid-mobile" id="scheduleGridMobile">
-                <!-- Mobile schedule will be generated here -->
+                <!-- Mobile Grid -->
+                <div class="md:hidden schedule-grid-mobile" id="scheduleGridMobile">
+                    <!-- Mobile schedule will be generated here -->
+                </div>
             </div>
         </div>
 
@@ -399,76 +518,89 @@
         </div>
 
         <!-- Summary and Actions -->
-        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
-            <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-4">📊 Resumen y Acciones</h2>
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-6">
-                <div class="bg-blue-50 p-3 md:p-4 rounded-lg text-center">
-                    <div class="text-xl md:text-2xl font-bold text-blue-600" id="totalParticipants">0</div>
-                    <div class="text-xs md:text-sm text-gray-600">Total Participantes</div>
-                </div>
-                <div class="bg-green-50 p-3 md:p-4 rounded-lg text-center">
-                    <div class="text-xl md:text-2xl font-bold text-green-600" id="availableSlots">0</div>
-                    <div class="text-xs md:text-sm text-gray-600">Cupos Disponibles</div>
-                </div>
-                <div class="bg-orange-50 p-3 md:p-4 rounded-lg text-center">
-                    <div class="text-xl md:text-2xl font-bold text-orange-600" id="group911Count">0</div>
-                    <div class="text-xs md:text-sm text-gray-600">Grupo G9-11 (30min)</div>
-                </div>
-                <div class="bg-purple-50 p-3 md:p-4 rounded-lg text-center">
-                    <div class="text-xl md:text-2xl font-bold text-purple-600" id="groupOlderCount">0</div>
-                    <div class="text-xs md:text-sm text-gray-600">Grupo G12+ (1h)</div>
-                </div>
-                <div class="bg-red-50 p-3 md:p-4 rounded-lg text-center col-span-2 md:col-span-1">
-                    <div class="text-xl md:text-2xl font-bold text-red-600" id="pendingCount">0</div>
-                    <div class="text-xs md:text-sm text-gray-600">Pendientes por Programar</div>
-                    <button onclick="showPendingParticipants()" 
-                            class="mt-2 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition-colors touch-button">
-                        Saber más
-                    </button>
+        <div class="bg-white rounded-xl shadow-lg collapsible-section">
+            <div class="collapsible-header p-4 md:p-6 pb-2" onclick="toggleSection('summarySection')">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg md:text-xl font-semibold text-gray-800">📊 Resumen y Acciones</h2>
+                    <div class="flex items-center">
+                        <span class="section-badge">Minimizado</span>
+                        <span class="collapse-icon ml-2 text-gray-500">▼</span>
+                    </div>
                 </div>
             </div>
             
-            <!-- Privacy Control -->
-            <div class="mb-4 text-center">
-                <button onclick="togglePhoneVisibility()" 
-                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto touch-button">
-                    <span id="phoneToggleIcon">👁️</span>
-                    <span id="phoneToggleText" class="text-sm md:text-base">Ocultar Números Telefónicos</span>
-                </button>
-                <p class="text-xs md:text-sm text-gray-600 mt-2">Controla la visibilidad de los números telefónicos en horarios e impresiones</p>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-4 md:justify-center">
-                <button onclick="printSchedule('portrait')" 
-                        class="bg-green-600 hover:bg-green-700 text-white px-3 md:px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
-                    🖨️ <span class="mobile-hidden">Imprimir</span> Vertical
-                </button>
-                <button onclick="printSchedule('landscape')" 
-                        class="bg-green-700 hover:bg-green-800 text-white px-3 md:px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
-                    🖨️ <span class="mobile-hidden">Imprimir</span> Horizontal
-                </button>
-                <button onclick="saveSchedule()" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
-                    💾 <span class="mobile-hidden">Guardar</span> Datos
-                </button>
-                <input type="file" id="loadFile" accept=".json" style="display: none;" onchange="loadSchedule(event)">
-                <button onclick="document.getElementById('loadFile').click()" 
-                        class="bg-purple-600 hover:bg-purple-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
-                    📂 <span class="mobile-hidden">Cargar</span> Datos
-                </button>
-                <button onclick="showParticipantDatabase()" 
-                        class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button col-span-2 md:col-span-1">
-                    📋 <span class="mobile-hidden">Ver</span> Base de Datos
-                </button>
-                <button onclick="toggleContactsPanel()" 
-                        class="bg-teal-600 hover:bg-teal-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button col-span-2 md:col-span-1">
-                    📞 Contactos
-                </button>
-                <button onclick="openGitHubModal()" 
-                        class="bg-gray-800 hover:bg-gray-900 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button col-span-2 md:col-span-1">
-                    ⚙️ GitHub
-                </button>
+            <div id="summarySection" class="collapsible-content collapsed">
+                <div class="px-4 md:px-6 pb-4 md:pb-6">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-6">
+                        <div class="bg-blue-50 p-3 md:p-4 rounded-lg text-center">
+                            <div class="text-xl md:text-2xl font-bold text-blue-600" id="totalParticipants">0</div>
+                            <div class="text-xs md:text-sm text-gray-600">Total Participantes</div>
+                        </div>
+                        <div class="bg-green-50 p-3 md:p-4 rounded-lg text-center">
+                            <div class="text-xl md:text-2xl font-bold text-green-600" id="availableSlots">0</div>
+                            <div class="text-xs md:text-sm text-gray-600">Cupos Disponibles</div>
+                        </div>
+                        <div class="bg-orange-50 p-3 md:p-4 rounded-lg text-center">
+                            <div class="text-xl md:text-2xl font-bold text-orange-600" id="group911Count">0</div>
+                            <div class="text-xs md:text-sm text-gray-600">Grupo G9-11 (30min)</div>
+                        </div>
+                        <div class="bg-purple-50 p-3 md:p-4 rounded-lg text-center">
+                            <div class="text-xl md:text-2xl font-bold text-purple-600" id="groupOlderCount">0</div>
+                            <div class="text-xs md:text-sm text-gray-600">Grupo G12+ (1h)</div>
+                        </div>
+                        <div class="bg-red-50 p-3 md:p-4 rounded-lg text-center col-span-2 md:col-span-1">
+                            <div class="text-xl md:text-2xl font-bold text-red-600" id="pendingCount">0</div>
+                            <div class="text-xs md:text-sm text-gray-600">Pendientes por Programar</div>
+                            <button onclick="showPendingParticipants()" 
+                                    class="mt-2 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition-colors touch-button">
+                                Saber más
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Privacy Control -->
+                    <div class="mb-4 text-center">
+                        <button onclick="togglePhoneVisibility()" 
+                                class="bg-gray-600 hover:bg-gray-700 text-white px-4 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto touch-button">
+                            <span id="phoneToggleIcon">👁️</span>
+                            <span id="phoneToggleText" class="text-sm md:text-base">Ocultar Números Telefónicos</span>
+                        </button>
+                        <p class="text-xs md:text-sm text-gray-600 mt-2">Controla la visibilidad de los números telefónicos en horarios e impresiones</p>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-4 md:justify-center">
+                        <button onclick="printSchedule('portrait')" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-3 md:px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
+                            🖨️ <span class="mobile-hidden">Imprimir</span> Vertical
+                        </button>
+                        <button onclick="printSchedule('landscape')" 
+                                class="bg-green-700 hover:bg-green-800 text-white px-3 md:px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
+                            🖨️ <span class="mobile-hidden">Imprimir</span> Horizontal
+                        </button>
+                        <button onclick="saveSchedule()" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
+                            💾 <span class="mobile-hidden">Guardar</span> Datos
+                        </button>
+                        <input type="file" id="loadFile" accept=".json" style="display: none;" onchange="loadSchedule(event)">
+                        <button onclick="document.getElementById('loadFile').click()" 
+                                class="bg-purple-600 hover:bg-purple-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
+                            📂 <span class="mobile-hidden">Cargar</span> Datos
+                        </button>
+                        <button onclick="showParticipantDatabase()" 
+                                class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button col-span-2 md:col-span-1">
+                            📋 <span class="mobile-hidden">Ver</span> Base de Datos
+                        </button>
+                        <button onclick="toggleContactsPanel()" 
+                                class="bg-teal-600 hover:bg-teal-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button col-span-2 md:col-span-1">
+                            📞 Contactos
+                        </button>
+                        <button onclick="openGitHubModal()" 
+                                class="bg-gray-800 hover:bg-gray-900 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button col-span-2 md:col-span-1">
+                            ⚙️ GitHub
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -605,6 +737,24 @@
                     if (loadedData.showPhoneNumbers !== undefined) {
                         showPhoneNumbers = loadedData.showPhoneNumbers;
                         updatePhoneToggleUI();
+                    }
+                    
+                    // 🔄 SINCRONIZACIÓN AUTOMÁTICA DE CONFIGURACIÓN
+                    // Si el archivo de GitHub contiene configuración, la aplicamos automáticamente
+                    if (loadedData.githubConfig && !githubConfig.isConfigured) {
+                        // Solo aplicar si no tenemos configuración local
+                        if (loadedData.githubConfig.owner && loadedData.githubConfig.repo) {
+                            githubConfig.owner = loadedData.githubConfig.owner;
+                            githubConfig.repo = loadedData.githubConfig.repo;
+                            
+                            // Guardar en localStorage para futuros usos
+                            localStorage.setItem('github_owner', githubConfig.owner);
+                            localStorage.setItem('github_repo', githubConfig.repo);
+                            
+                            // Nota: El token NO se sincroniza por seguridad
+                            showGitHubIndicator('📥 Configuración GitHub sincronizada', 'bg-purple-600');
+                            updateGitHubStatus();
+                        }
                     }
                     
                     // Update displays
@@ -763,6 +913,138 @@
             alert('✅ Configuración de GitHub guardada exitosamente!\n\nLa sincronización automática se activará cada 5 minutos.');
         }
         
+        // ⚡ Configuración rápida de GitHub
+        async function quickGitHubSetup() {
+            const token = document.getElementById('quickToken').value.trim();
+            const resultDiv = document.getElementById('githubTestResult');
+            
+            if (!token) {
+                alert('Por favor ingresa tu token de acceso');
+                return;
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div class="text-blue-800 font-semibold">🔍 Buscando configuración...</div>
+                    <div class="text-blue-700 text-sm">Intentando cargar datos desde GitHub</div>
+                </div>
+            `;
+            resultDiv.classList.remove('hidden');
+            
+            try {
+                // Temporalmente configurar solo el token para intentar cargar
+                const tempConfig = { ...githubConfig, token: token };
+                
+                // Intentar encontrar el archivo en repositorios del usuario
+                const userResponse = await fetch('https://api.github.com/user', {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!userResponse.ok) {
+                    throw new Error('Token inválido o sin permisos');
+                }
+                
+                const userData = await userResponse.json();
+                const username = userData.login;
+                
+                // Buscar repositorios que contengan el archivo de datos
+                const reposResponse = await fetch(`https://api.github.com/user/repos?per_page=100`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!reposResponse.ok) {
+                    throw new Error('No se pudieron obtener los repositorios');
+                }
+                
+                const repos = await reposResponse.json();
+                let foundRepo = null;
+                
+                // Buscar el archivo en cada repositorio
+                for (const repo of repos) {
+                    try {
+                        const fileResponse = await fetch(`https://api.github.com/repos/${repo.full_name}/contents/data/horarios_encuestas_autosave.json`, {
+                            headers: {
+                                'Authorization': `token ${token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        });
+                        
+                        if (fileResponse.ok) {
+                            foundRepo = repo;
+                            break;
+                        }
+                    } catch (e) {
+                        // Continuar buscando
+                        continue;
+                    }
+                }
+                
+                if (foundRepo) {
+                    // Configurar automáticamente
+                    githubConfig.owner = foundRepo.owner.login;
+                    githubConfig.repo = foundRepo.name;
+                    githubConfig.token = token;
+                    githubConfig.isConfigured = true;
+                    
+                    // Guardar en localStorage
+                    localStorage.setItem('github_owner', githubConfig.owner);
+                    localStorage.setItem('github_repo', githubConfig.repo);
+                    localStorage.setItem('github_token', githubConfig.token);
+                    
+                    // Cargar datos
+                    const loaded = await loadFromGitHub();
+                    
+                    resultDiv.innerHTML = `
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div class="text-green-800 font-semibold">✅ ¡Configuración automática exitosa!</div>
+                            <div class="text-green-700 text-sm">
+                                Repositorio encontrado: ${foundRepo.full_name}<br>
+                                ${loaded ? 'Datos cargados correctamente' : 'Repositorio configurado'}
+                            </div>
+                        </div>
+                    `;
+                    
+                    updateGitHubStatus();
+                    startGitHubSync();
+                    
+                    setTimeout(() => {
+                        closeGitHubModal();
+                        alert('🎉 ¡Configuración automática completada!\n\nTu dispositivo ya está sincronizado con GitHub.');
+                    }, 2000);
+                    
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div class="text-yellow-800 font-semibold">⚠️ No se encontró configuración existente</div>
+                            <div class="text-yellow-700 text-sm">
+                                El token es válido, pero no se encontró un repositorio con datos del sistema.<br>
+                                Usa la configuración manual para crear uno nuevo.
+                            </div>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <div class="text-red-800 font-semibold">❌ Error en configuración rápida</div>
+                        <div class="text-red-700 text-sm">${error.message}</div>
+                        <div class="text-red-600 text-xs mt-2">
+                            Verifica que el token sea válido y tenga permisos de 'repo'
+                        </div>
+                    </div>
+                `;
+            }
+            
+            resultDiv.classList.remove('hidden');
+        }
+        
         function startGitHubSync() {
             if (!githubConfig.isConfigured) return;
             
@@ -778,7 +1060,15 @@
                     participantDatabase: participantDatabase,
                     showPhoneNumbers: showPhoneNumbers,
                     timestamp: new Date().toISOString(),
-                    version: "2.3-github"
+                    version: "2.3-github",
+                    // 🔄 Incluir configuración GitHub (sin token por seguridad)
+                    githubConfig: {
+                        owner: githubConfig.owner,
+                        repo: githubConfig.repo,
+                        branch: githubConfig.branch,
+                        dataPath: githubConfig.dataPath
+                        // Nota: token NO se incluye por seguridad
+                    }
                 };
                 
                 await saveToGitHub(dataToSync);
@@ -817,7 +1107,18 @@
                     
                     // If GitHub is configured, also sync there (but don't wait for it)
                     if (githubConfig.isConfigured) {
-                        saveToGitHub(dataToSave).catch(error => {
+                        // Incluir configuración GitHub en el guardado automático
+                        const dataWithConfig = {
+                            ...dataToSave,
+                            githubConfig: {
+                                owner: githubConfig.owner,
+                                repo: githubConfig.repo,
+                                branch: githubConfig.branch,
+                                dataPath: githubConfig.dataPath
+                            }
+                        };
+                        
+                        saveToGitHub(dataWithConfig).catch(error => {
                             console.warn('GitHub sync failed, but local save succeeded:', error);
                         });
                     }
@@ -2175,6 +2476,32 @@
             }
         }
 
+        // Toggle collapsible sections
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.collapse-icon');
+            const badge = header.querySelector('.section-badge');
+            
+            if (content.classList.contains('collapsed')) {
+                // Expand section
+                content.classList.remove('collapsed');
+                content.classList.add('expanded');
+                icon.classList.add('rotated');
+                icon.textContent = '▲';
+                badge.textContent = 'Expandido';
+                badge.style.backgroundColor = '#10b981'; // green
+            } else {
+                // Collapse section
+                content.classList.remove('expanded');
+                content.classList.add('collapsed');
+                icon.classList.remove('rotated');
+                icon.textContent = '▼';
+                badge.textContent = 'Minimizado';
+                badge.style.backgroundColor = '#4f46e5'; // indigo
+            }
+        }
+
         // Initialize the application
         document.addEventListener('DOMContentLoaded', async function() {
             populateTimeSelect();
@@ -2214,5 +2541,5 @@
         document.addEventListener('change', autoSave);
         document.addEventListener('input', autoSave);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'972409af7085dd29',t:'MTc1NTcxNTQyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9724808a3277db16',t:'MTc1NTcyMDI5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
