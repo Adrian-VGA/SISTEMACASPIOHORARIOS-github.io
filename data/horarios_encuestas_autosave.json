@@ -4098,7 +4098,7 @@
       "tutor": "Proyecto 660 Crecer"
     }
   },
-  "showPhoneNumbers": false,
-  "timestamp": "2025-08-20T19:46:42.876Z",
+  "showPhoneNumbers": true,
+  "timestamp": "2025-08-20T19:46:48.893Z",
   "version": "2.3-github"
 }
