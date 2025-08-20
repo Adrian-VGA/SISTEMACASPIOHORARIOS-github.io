@@ -4099,6 +4099,12 @@
     }
   },
   "showPhoneNumbers": true,
-  "timestamp": "2025-08-20T20:07:50.945Z",
-  "version": "2.3-github"
+  "timestamp": "2025-08-20T20:11:38.277Z",
+  "version": "2.3-github",
+  "githubConfig": {
+    "owner": "Adrian-VGA",
+    "repo": "SISTEMACASPIOHORARIOS-github.io",
+    "branch": "main",
+    "dataPath": "data/horarios_encuestas_autosave.json"
+  }
 }
