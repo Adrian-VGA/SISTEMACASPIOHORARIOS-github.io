@@ -2440,7 +2440,7 @@
         function makeCall(phoneNumber, contactName) {
             // Clean phone number for tel: protocol
             const cleanNumber = phoneNumber.replace(/\D/g, '');
-            const telUrl = `tel:+1${cleanNumber}`;
+            const telUrl = `tel:+57${cleanNumber}`;
             
             // Show confirmation dialog
             const confirmed = confirm(`¿Llamar a ${contactName}?\n\nNúmero: ${phoneNumber}\n\nEsto abrirá la aplicación de teléfono de tu dispositivo.`);
@@ -2460,7 +2460,7 @@
         function sendSMS(phoneNumber, contactName) {
             // Clean phone number for sms: protocol
             const cleanNumber = phoneNumber.replace(/\D/g, '');
-            const smsUrl = `sms:+1${cleanNumber}`;
+            const smsUrl = `sms:+57${cleanNumber}`;
             
             // Show confirmation dialog
             const confirmed = confirm(`¿Enviar mensaje a ${contactName}?\n\nNúmero: ${phoneNumber}\n\nEsto abrirá la aplicación de mensajes de tu dispositivo.`);
