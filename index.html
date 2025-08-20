@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Horarios Encuestas">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#4f46e5">
+    <title>Organizador de Horarios - Encuestas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            touch-action: manipulation;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .mobile-stack { flex-direction: column !important; }
+            .mobile-full { width: 100% !important; }
+            .mobile-text-sm { font-size: 0.875rem !important; }
+            .mobile-p-2 { padding: 0.5rem !important; }
+            .mobile-gap-2 { gap: 0.5rem !important; }
+            .mobile-hidden { display: none !important; }
+            .mobile-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .mobile-grid-1 { grid-template-columns: 1fr !important; }
+        }
+        
+        /* Tablet optimizations */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .tablet-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
+            .tablet-text-base { font-size: 1rem !important; }
+        }
+        
+        /* Touch-friendly buttons */
+        .touch-button {
+            min-height: 44px;
+            min-width: 44px;
+            touch-action: manipulation;
+        }
+        
+        /* Improved scrolling */
+        .smooth-scroll {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Prevent zoom on input focus (iOS) */
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+        
+        /* Sticky header for mobile */
+        @media (max-width: 768px) {
+            .mobile-sticky {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                backdrop-filter: blur(10px);
+                background-color: rgba(255, 255, 255, 0.95);
+            }
+        }
+        
+        /* Auto-save indicator */
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .save-indicator {
+                top: 10px;
+                right: 10px;
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Schedule grid mobile optimization */
+        @media (max-width: 768px) {
+            .schedule-grid-mobile {
+                display: block !important;
+            }
+            .schedule-row-mobile {
+                border: 1px solid #e5e7eb;
+                border-radius: 0.5rem;
+                margin-bottom: 1rem;
+                background: white;
+                overflow: hidden;
+            }
+            .schedule-time-mobile {
+                background: #4f46e5;
+                color: white;
+                padding: 0.75rem;
+                font-weight: bold;
+                text-align: center;
+            }
+            .schedule-days-mobile {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            .schedule-day-mobile {
+                border-top: 1px solid #e5e7eb;
+                padding: 0.75rem;
+            }
+            .schedule-day-header {
+                font-weight: bold;
+                color: #4f46e5;
+                margin-bottom: 0.5rem;
+                border-bottom: 1px solid #e5e7eb;
+                padding-bottom: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-2 md:p-4">
+    <!-- Auto-save indicator -->
+    <div id="saveIndicator" class="save-indicator bg-green-600 text-white px-3 py-1 rounded-full text-sm opacity-0 transform translate-y-2">
+        💾 Guardado automático
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6 mobile-sticky">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 text-center mb-2">📋 Organizador de Horarios - Encuestas</h1>
+            <p class="text-gray-600 text-center text-sm md:text-base">Sistema avanzado de gestión de horarios con participantes precargados</p>
+            <div class="flex flex-wrap justify-center mt-4 gap-2 md:gap-4 text-xs md:text-sm text-gray-500">
+                <span>📅 Lunes - Miércoles</span>
+                <span>🕕 6:30 AM - 3:00 PM</span>
+                <span class="mobile-hidden">🍽️ Almuerzo: 12:00 PM - 1:00 PM</span>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="mt-4 md:mt-6 max-w-md mx-auto">
+                <div class="relative">
+                    <input type="text" id="searchParticipant" placeholder="🔍 Buscar participante por código (ej: P001)" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center font-medium touch-button">
+                    <button onclick="searchParticipantSchedule()" 
+                            class="absolute right-2 top-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1 rounded-md text-sm transition-colors touch-button">
+                        Buscar
+                    </button>
+                </div>
+                <div id="searchResult" class="mt-2 text-center text-sm"></div>
+            </div>
+        </div>
+
+        <!-- Participant Management -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 mobile-grid-1 gap-4 md:gap-6 mb-4 md:mb-6">
+            <!-- Individual Participant Management -->
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-4">👤 Gestión Individual</h2>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="participantCode" placeholder="Código participante" 
+                               class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button">
+                        <input type="text" id="participantName" placeholder="Nombre" readonly
+                               class="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 touch-button">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="participantTutor" placeholder="Tutor" readonly
+                               class="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 touch-button">
+                        <input type="text" id="participantGroup" placeholder="Grupo etario" readonly
+                               class="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 touch-button">
+                    </div>
+                    <div class="grid grid-cols-1 gap-4">
+                        <input type="tel" id="participantPhone" placeholder="(###) ###-#### - Celular 1 (OBLIGATORIO)" 
+                               class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button"
+                               maxlength="14" required>
+                        <input type="tel" id="participantPhone2" placeholder="(###) ###-#### - Celular 2 (opcional)" 
+                               class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button"
+                               maxlength="14">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <select id="daySelect" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button">
+                            <option value="">Seleccionar día</option>
+                            <option value="lunes">Lunes</option>
+                            <option value="martes">Martes</option>
+                            <option value="miercoles">Miércoles</option>
+                        </select>
+                        <select id="timeSelect" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button">
+                            <option value="">Seleccionar horario</option>
+                        </select>
+                    </div>
+                    <button onclick="addParticipant()" 
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors touch-button">
+                        Agregar al Horario
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mass Participant Management -->
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-4">👥 Gestión Masiva</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Formato: código,nombre,grupo_etario,tutor (uno por línea)
+                        </label>
+                        <textarea id="massParticipants" rows="6" placeholder="P001,Juan Pérez,G12-14,María García&#10;P002,Ana López,G9-11,Carlos Ruiz&#10;P003,Luis Torres,G15-18,Elena Martín"
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                    <button onclick="addMassParticipants()" 
+                            class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors touch-button">
+                        Cargar Participantes Masivamente
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Grid -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-4 md:mb-6">
+            <!-- Desktop/Tablet Grid -->
+            <div class="hidden md:block">
+                <div class="grid grid-cols-4 bg-indigo-600 text-white">
+                    <div class="p-4 font-semibold text-center">Horario</div>
+                    <div class="p-4 font-semibold text-center">Lunes</div>
+                    <div class="p-4 font-semibold text-center">Martes</div>
+                    <div class="p-4 font-semibold text-center">Miércoles</div>
+                </div>
+                
+                <div id="scheduleGrid" class="divide-y divide-gray-200">
+                    <!-- Schedule rows will be generated here -->
+                </div>
+            </div>
+
+            <!-- Mobile Grid -->
+            <div class="md:hidden schedule-grid-mobile" id="scheduleGridMobile">
+                <!-- Mobile schedule will be generated here -->
+            </div>
+        </div>
+
+        <!-- Pending Participants Panel -->
+        <div id="pendingPanel" class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800">📋 Participantes Pendientes por Programar</h2>
+                <button onclick="hidePendingPanel()" class="text-gray-500 hover:text-gray-700 text-xl touch-button">✕</button>
+            </div>
+            <div id="pendingParticipantsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Pending participants will be displayed here -->
+            </div>
+        </div>
+
+        <!-- Contacts Panel -->
+        <div id="contactsPanel" class="bg-white rounded-xl shadow-lg mb-4 md:mb-6 hidden">
+            <div class="flex justify-between items-center p-4 md:p-6 border-b border-gray-200">
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800">📞 Contactos de Participantes</h2>
+                <button onclick="toggleContactsPanel()" class="text-gray-500 hover:text-gray-700 text-xl touch-button">✕</button>
+            </div>
+            <div class="p-4 md:p-6">
+                <!-- Search contacts -->
+                <div class="mb-4">
+                    <input type="text" id="contactSearch" placeholder="🔍 Buscar contacto por nombre o código..." 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 touch-button"
+                           oninput="filterContacts()">
+                </div>
+                
+                <!-- Contacts list -->
+                <div id="contactsList" class="space-y-3 max-h-96 overflow-y-auto smooth-scroll">
+                    <!-- Contacts will be populated here -->
+                </div>
+                
+                <!-- Empty state -->
+                <div id="contactsEmptyState" class="text-center py-8 text-gray-500 hidden">
+                    <div class="text-4xl mb-2">📱</div>
+                    <p>No hay contactos registrados con números telefónicos</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary and Actions -->
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+            <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-4">📊 Resumen y Acciones</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-6">
+                <div class="bg-blue-50 p-3 md:p-4 rounded-lg text-center">
+                    <div class="text-xl md:text-2xl font-bold text-blue-600" id="totalParticipants">0</div>
+                    <div class="text-xs md:text-sm text-gray-600">Total Participantes</div>
+                </div>
+                <div class="bg-green-50 p-3 md:p-4 rounded-lg text-center">
+                    <div class="text-xl md:text-2xl font-bold text-green-600" id="availableSlots">0</div>
+                    <div class="text-xs md:text-sm text-gray-600">Cupos Disponibles</div>
+                </div>
+                <div class="bg-orange-50 p-3 md:p-4 rounded-lg text-center">
+                    <div class="text-xl md:text-2xl font-bold text-orange-600" id="group911Count">0</div>
+                    <div class="text-xs md:text-sm text-gray-600">Grupo G9-11 (30min)</div>
+                </div>
+                <div class="bg-purple-50 p-3 md:p-4 rounded-lg text-center">
+                    <div class="text-xl md:text-2xl font-bold text-purple-600" id="groupOlderCount">0</div>
+                    <div class="text-xs md:text-sm text-gray-600">Grupo G12+ (1h)</div>
+                </div>
+                <div class="bg-red-50 p-3 md:p-4 rounded-lg text-center col-span-2 md:col-span-1">
+                    <div class="text-xl md:text-2xl font-bold text-red-600" id="pendingCount">0</div>
+                    <div class="text-xs md:text-sm text-gray-600">Pendientes por Programar</div>
+                    <button onclick="showPendingParticipants()" 
+                            class="mt-2 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition-colors touch-button">
+                        Saber más
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Privacy Control -->
+            <div class="mb-4 text-center">
+                <button onclick="togglePhoneVisibility()" 
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto touch-button">
+                    <span id="phoneToggleIcon">👁️</span>
+                    <span id="phoneToggleText" class="text-sm md:text-base">Ocultar Números Telefónicos</span>
+                </button>
+                <p class="text-xs md:text-sm text-gray-600 mt-2">Controla la visibilidad de los números telefónicos en horarios e impresiones</p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-4 md:justify-center">
+                <button onclick="printSchedule('portrait')" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-3 md:px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
+                    🖨️ <span class="mobile-hidden">Imprimir</span> Vertical
+                </button>
+                <button onclick="printSchedule('landscape')" 
+                        class="bg-green-700 hover:bg-green-800 text-white px-3 md:px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
+                    🖨️ <span class="mobile-hidden">Imprimir</span> Horizontal
+                </button>
+                <button onclick="saveSchedule()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
+                    💾 <span class="mobile-hidden">Guardar</span> Datos
+                </button>
+                <input type="file" id="loadFile" accept=".json" style="display: none;" onchange="loadSchedule(event)">
+                <button onclick="document.getElementById('loadFile').click()" 
+                        class="bg-purple-600 hover:bg-purple-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button">
+                    📂 <span class="mobile-hidden">Cargar</span> Datos
+                </button>
+                <button onclick="showParticipantDatabase()" 
+                        class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button col-span-2 md:col-span-1">
+                    📋 <span class="mobile-hidden">Ver</span> Base de Datos
+                </button>
+                <button onclick="toggleContactsPanel()" 
+                        class="bg-teal-600 hover:bg-teal-700 text-white px-3 md:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base touch-button col-span-2 md:col-span-1">
+                    📞 Contactos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global privacy setting
+        let showPhoneNumbers = true;
+        let autoSaveTimeout;
+
+        // Participant database
+        let participantDatabase = {
+            'P001': { name: 'Juan Pérez', group: 'G12-14', tutor: 'María García' },
+            'P002': { name: 'Ana López', group: 'G9-11', tutor: 'Carlos Ruiz' },
+            'P003': { name: 'Luis Torres', group: 'G15-18', tutor: 'Elena Martín' },
+            'P004': { name: 'Sofia Ramírez', group: 'G19+', tutor: 'Pedro Sánchez' },
+            'P005': { name: 'Diego Morales', group: 'G9-11', tutor: 'Laura Vega' }
+        };
+
+        // Auto-save functionality
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.style.opacity = '1';
+            indicator.style.transform = 'translateY(0)';
+            
+            setTimeout(() => {
+                indicator.style.opacity = '0';
+                indicator.style.transform = 'translateY(-8px)';
+            }, 2000);
+        }
+
+        function autoSave() {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                const dataToSave = {
+                    scheduleData: scheduleData,
+                    participantDatabase: participantDatabase,
+                    showPhoneNumbers: showPhoneNumbers,
+                    timestamp: new Date().toISOString(),
+                    version: "2.2"
+                };
+                
+                try {
+                    localStorage.setItem('horarios_encuestas_autosave', JSON.stringify(dataToSave));
+                    showSaveIndicator();
+                } catch (error) {
+                    console.warn('Error en guardado automático:', error);
+                }
+            }, 1000);
+        }
+
+        function loadAutoSave() {
+            try {
+                const savedData = localStorage.getItem('horarios_encuestas_autosave');
+                if (savedData) {
+                    const loadedData = JSON.parse(savedData);
+                    
+                    if (loadedData.scheduleData) {
+                        scheduleData.lunes = loadedData.scheduleData.lunes || {};
+                        scheduleData.martes = loadedData.scheduleData.martes || {};
+                        scheduleData.miercoles = loadedData.scheduleData.miercoles || {};
+                        
+                        if (loadedData.participantDatabase) {
+                            participantDatabase = loadedData.participantDatabase;
+                        }
+                        
+                        if (loadedData.showPhoneNumbers !== undefined) {
+                            showPhoneNumbers = loadedData.showPhoneNumbers;
+                            updatePhoneToggleUI();
+                        }
+                        
+                        // Update all displays
+                        generateScheduleGrid();
+                        generateMobileScheduleGrid();
+                        updateSummary();
+                        
+                        console.log('Datos cargados automáticamente desde el almacenamiento local');
+                    }
+                }
+            } catch (error) {
+                console.warn('Error al cargar datos automáticos:', error);
+            }
+        }
+
+        function updatePhoneToggleUI() {
+            const icon = document.getElementById('phoneToggleIcon');
+            const text = document.getElementById('phoneToggleText');
+            
+            if (showPhoneNumbers) {
+                icon.textContent = '👁️';
+                text.textContent = 'Ocultar Números Telefónicos';
+            } else {
+                icon.textContent = '🙈';
+                text.textContent = 'Mostrar Números Telefónicos';
+            }
+        }
+
+        // Toggle phone number visibility
+        function togglePhoneVisibility() {
+            showPhoneNumbers = !showPhoneNumbers;
+            updatePhoneToggleUI();
+            
+            // Update all schedule cells
+            timeSlots.forEach(slot => {
+                ['lunes', 'martes', 'miercoles'].forEach(day => {
+                    updateCellDisplay(day, slot.value);
+                });
+            });
+            
+            // Update mobile grid
+            generateMobileScheduleGrid();
+            
+            // Update contacts panel if it's open
+            if (!document.getElementById('contactsPanel').classList.contains('hidden')) {
+                loadContacts();
+            }
+            
+            autoSave();
+        }
+
+        // Generate time slots from 6:30 AM to 3:00 PM (30-minute intervals)
+        function generateTimeSlots() {
+            const slots = [];
+            let hour = 6;
+            let minute = 30;
+            
+            while (hour < 15 || (hour === 15 && minute === 0)) {
+                const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                const displayTime = hour >= 12 ? 
+                    `${hour === 12 ? 12 : hour - 12}:${minute.toString().padStart(2, '0')} PM` :
+                    `${hour}:${minute.toString().padStart(2, '0')} AM`;
+                
+                // Mark lunch time
+                const isLunch = (hour === 12 && minute === 0) || (hour === 12 && minute === 30);
+                
+                slots.push({ 
+                    value: timeString, 
+                    display: displayTime,
+                    isLunch: isLunch
+                });
+                
+                minute += 30;
+                if (minute >= 60) {
+                    minute = 0;
+                    hour++;
+                }
+            }
+            return slots;
+        }
+
+        // Initialize schedule data
+        const timeSlots = generateTimeSlots();
+        const scheduleData = {
+            lunes: {},
+            martes: {},
+            miercoles: {}
+        };
+
+        // Get next time slot
+        function getNextTimeSlot(currentTime) {
+            const currentIndex = timeSlots.findIndex(slot => slot.value === currentTime);
+            return currentIndex < timeSlots.length - 1 ? timeSlots[currentIndex + 1] : null;
+        }
+
+        // Check if slots are available for duration
+        function checkSlotsAvailable(day, startTime, duration) {
+            const startIndex = timeSlots.findIndex(slot => slot.value === startTime);
+            if (startIndex === -1) return false;
+            
+            const slotsNeeded = duration === 60 ? 2 : 1;
+            
+            for (let i = 0; i < slotsNeeded; i++) {
+                const slotIndex = startIndex + i;
+                if (slotIndex >= timeSlots.length) return false;
+                
+                const slot = timeSlots[slotIndex];
+                if (slot.isLunch) return false;
+                
+                const participants = scheduleData[day][slot.value] || [];
+                if (participants.length >= 9) return false;
+            }
+            
+            return true;
+        }
+
+        // Populate time select options
+        function populateTimeSelect() {
+            const timeSelect = document.getElementById('timeSelect');
+            timeSelect.innerHTML = '<option value="">Seleccionar horario</option>';
+            
+            timeSlots.forEach(slot => {
+                if (!slot.isLunch) {
+                    const option = document.createElement('option');
+                    option.value = slot.value;
+                    option.textContent = slot.display;
+                    timeSelect.appendChild(option);
+                }
+            });
+        }
+
+        // Generate desktop/tablet schedule grid
+        function generateScheduleGrid() {
+            const grid = document.getElementById('scheduleGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            timeSlots.forEach(slot => {
+                const row = document.createElement('div');
+                row.className = 'grid grid-cols-4 hover:bg-gray-50';
+                
+                // Time column
+                const timeCell = document.createElement('div');
+                timeCell.className = `p-4 font-medium text-gray-700 ${slot.isLunch ? 'bg-yellow-100' : 'bg-gray-50'}`;
+                timeCell.textContent = slot.isLunch ? `${slot.display} - ALMUERZO` : slot.display;
+                row.appendChild(timeCell);
+                
+                // Day columns
+                ['lunes', 'martes', 'miercoles'].forEach(day => {
+                    const dayCell = document.createElement('div');
+                    dayCell.className = `p-4 min-h-[120px] border-l border-gray-200 ${slot.isLunch ? 'bg-yellow-50' : ''}`;
+                    dayCell.id = `${day}-${slot.value}`;
+                    
+                    if (slot.isLunch) {
+                        dayCell.innerHTML = '<div class="text-center text-yellow-700 font-medium">🍽️ ALMUERZO</div>';
+                    }
+                    
+                    row.appendChild(dayCell);
+                });
+                
+                grid.appendChild(row);
+            });
+            
+            // Update all cells with current data
+            timeSlots.forEach(slot => {
+                ['lunes', 'martes', 'miercoles'].forEach(day => {
+                    updateCellDisplay(day, slot.value);
+                });
+            });
+        }
+
+        // Generate mobile schedule grid
+        function generateMobileScheduleGrid() {
+            const mobileGrid = document.getElementById('scheduleGridMobile');
+            if (!mobileGrid) return;
+            
+            mobileGrid.innerHTML = '';
+            
+            timeSlots.forEach(slot => {
+                const row = document.createElement('div');
+                row.className = 'schedule-row-mobile';
+                
+                // Time header
+                const timeHeader = document.createElement('div');
+                timeHeader.className = 'schedule-time-mobile';
+                timeHeader.textContent = slot.isLunch ? `${slot.display} - ALMUERZO` : slot.display;
+                row.appendChild(timeHeader);
+                
+                if (!slot.isLunch) {
+                    // Days container
+                    const daysContainer = document.createElement('div');
+                    daysContainer.className = 'schedule-days-mobile';
+                    
+                    ['lunes', 'martes', 'miercoles'].forEach(day => {
+                        const dayDiv = document.createElement('div');
+                        dayDiv.className = 'schedule-day-mobile';
+                        dayDiv.id = `mobile-${day}-${slot.value}`;
+                        
+                        const dayHeader = document.createElement('div');
+                        dayHeader.className = 'schedule-day-header';
+                        dayHeader.textContent = day.charAt(0).toUpperCase() + day.slice(1);
+                        dayDiv.appendChild(dayHeader);
+                        
+                        const participantsDiv = document.createElement('div');
+                        participantsDiv.id = `mobile-participants-${day}-${slot.value}`;
+                        dayDiv.appendChild(participantsDiv);
+                        
+                        daysContainer.appendChild(dayDiv);
+                    });
+                    
+                    row.appendChild(daysContainer);
+                } else {
+                    // Lunch message
+                    const lunchDiv = document.createElement('div');
+                    lunchDiv.className = 'p-4 text-center text-yellow-700 bg-yellow-50';
+                    lunchDiv.innerHTML = '🍽️ ALMUERZO';
+                    row.appendChild(lunchDiv);
+                }
+                
+                mobileGrid.appendChild(row);
+            });
+            
+            // Update mobile cells with current data
+            timeSlots.forEach(slot => {
+                if (!slot.isLunch) {
+                    ['lunes', 'martes', 'miercoles'].forEach(day => {
+                        updateMobileCellDisplay(day, slot.value);
+                    });
+                }
+            });
+        }
+
+        // Format phone number function
+        function formatPhoneNumber(value) {
+            // Remove all non-digit characters
+            const phoneNumber = value.replace(/\D/g, '');
+            
+            // Format based on length
+            if (phoneNumber.length <= 3) {
+                return phoneNumber;
+            } else if (phoneNumber.length <= 6) {
+                return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+            } else {
+                return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+            }
+        }
+
+        // Validate phone number function
+        function validatePhoneNumber(phoneNumber) {
+            const digitsOnly = phoneNumber.replace(/\D/g, '');
+            return digitsOnly.length === 10;
+        }
+
+        // Auto-complete participant info
+        document.getElementById('participantCode').addEventListener('input', function() {
+            const code = this.value.toUpperCase();
+            const participant = participantDatabase[code];
+            
+            if (participant) {
+                document.getElementById('participantName').value = participant.name;
+                document.getElementById('participantTutor').value = participant.tutor;
+                document.getElementById('participantGroup').value = participant.group;
+            } else {
+                document.getElementById('participantName').value = '';
+                document.getElementById('participantTutor').value = '';
+                document.getElementById('participantGroup').value = '';
+            }
+        });
+
+        // Phone number formatting for both fields
+        function setupPhoneFormatting(fieldId) {
+            document.getElementById(fieldId).addEventListener('input', function(e) {
+                const input = e.target;
+                const cursorPosition = input.selectionStart;
+                const oldLength = input.value.length;
+                
+                // Format the phone number
+                const formattedValue = formatPhoneNumber(input.value);
+                input.value = formattedValue;
+                
+                // Calculate new cursor position
+                const newLength = formattedValue.length;
+                let newCursorPosition = cursorPosition;
+                
+                // Adjust cursor position based on formatting changes
+                if (newLength > oldLength) {
+                    // Characters were added (formatting)
+                    if (cursorPosition === 4 && formattedValue.charAt(3) === ')') {
+                        newCursorPosition = cursorPosition + 2; // Skip ") "
+                    } else if (cursorPosition === 9 && formattedValue.charAt(8) === '-') {
+                        newCursorPosition = cursorPosition + 1; // Skip "-"
+                    } else if (newLength > oldLength) {
+                        newCursorPosition = cursorPosition + (newLength - oldLength);
+                    }
+                }
+                
+                // Set cursor position
+                setTimeout(() => {
+                    input.setSelectionRange(newCursorPosition, newCursorPosition);
+                }, 0);
+            });
+        }
+
+        // Search participant schedule
+        function searchParticipantSchedule() {
+            const searchCode = document.getElementById('searchParticipant').value.trim().toUpperCase();
+            const resultDiv = document.getElementById('searchResult');
+            
+            if (!searchCode) {
+                resultDiv.innerHTML = '<span class="text-red-600">Por favor ingresa un código de participante</span>';
+                return;
+            }
+            
+            // Check if participant exists in database
+            if (!participantDatabase[searchCode]) {
+                resultDiv.innerHTML = '<span class="text-red-600">❌ Participante no encontrado en la base de datos</span>';
+                return;
+            }
+            
+            // Check if participant is scheduled
+            const schedule = isParticipantScheduled(searchCode);
+            if (schedule) {
+                const dayNames = { lunes: 'Lunes', martes: 'Martes', miercoles: 'Miércoles' };
+                const timeSlot = timeSlots.find(slot => slot.value === schedule.time);
+                const participant = participantDatabase[searchCode];
+                
+                resultDiv.innerHTML = `
+                    <div class="bg-green-100 border border-green-300 rounded-lg p-3 mt-2">
+                        <div class="text-green-800 font-semibold">✅ ${participant.name} (${searchCode})</div>
+                        <div class="text-green-700">📅 ${dayNames[schedule.day]} a las ${timeSlot.display}</div>
+                        <div class="text-green-600 text-xs">Grupo: ${participant.group} | Tutor: ${participant.tutor}</div>
+                    </div>
+                `;
+            } else {
+                const participant = participantDatabase[searchCode];
+                resultDiv.innerHTML = `
+                    <div class="bg-yellow-100 border border-yellow-300 rounded-lg p-3 mt-2">
+                        <div class="text-yellow-800 font-semibold">⏳ ${participant.name} (${searchCode})</div>
+                        <div class="text-yellow-700">Sin horario asignado</div>
+                        <div class="text-yellow-600 text-xs">Grupo: ${participant.group} | Tutor: ${participant.tutor}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Handle Enter key in search field
+        document.getElementById('searchParticipant').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchParticipantSchedule();
+            }
+        });
+
+        // Check if participant is already scheduled
+        function isParticipantScheduled(code) {
+            for (const day of Object.keys(scheduleData)) {
+                for (const time of Object.keys(scheduleData[day])) {
+                    if (scheduleData[day][time].some(p => p.code === code)) {
+                        return { day, time };
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Add participant to schedule
+        function addParticipant() {
+            const code = document.getElementById('participantCode').value.trim().toUpperCase();
+            const name = document.getElementById('participantName').value.trim();
+            const tutor = document.getElementById('participantTutor').value.trim();
+            const group = document.getElementById('participantGroup').value.trim();
+            const phone = document.getElementById('participantPhone').value.trim();
+            const phone2 = document.getElementById('participantPhone2').value.trim();
+            const day = document.getElementById('daySelect').value;
+            const time = document.getElementById('timeSelect').value;
+            
+            if (!code || !name || !day || !time || !phone) {
+                alert('Por favor completa todos los campos obligatorios incluyendo el número telefónico principal');
+                return;
+            }
+
+            // Check if participant is already scheduled
+            const existingSchedule = isParticipantScheduled(code);
+            if (existingSchedule) {
+                const dayNames = { lunes: 'Lunes', martes: 'Martes', miercoles: 'Miércoles' };
+                const timeSlot = timeSlots.find(slot => slot.value === existingSchedule.time);
+                alert(`El participante ${code} ya está programado para ${dayNames[existingSchedule.day]} a las ${timeSlot.display}`);
+                return;
+            }
+
+            // Validate phone number (now required)
+            if (!validatePhoneNumber(phone)) {
+                alert('Por favor verificar el numero telefónico principal - debe tener exactamente 10 dígitos');
+                return;
+            }
+
+            // Validate second phone number if provided
+            if (phone2 && !validatePhoneNumber(phone2)) {
+                alert('Por favor verificar el segundo número telefónico - debe tener exactamente 10 dígitos o dejarlo vacío');
+                return;
+            }
+            
+            // Determine duration based on age group
+            const duration = group === 'G9-11' ? 30 : 60;
+            
+            // Check if slots are available
+            if (!checkSlotsAvailable(day, time, duration)) {
+                alert(`No hay suficientes espacios disponibles para el grupo ${group} (${duration} minutos)`);
+                return;
+            }
+            
+            // Add participant to required slots
+            const startIndex = timeSlots.findIndex(slot => slot.value === time);
+            const slotsNeeded = duration === 60 ? 2 : 1;
+            
+            for (let i = 0; i < slotsNeeded; i++) {
+                const slotIndex = startIndex + i;
+                const slot = timeSlots[slotIndex];
+                
+                if (!scheduleData[day][slot.value]) {
+                    scheduleData[day][slot.value] = [];
+                }
+                
+                scheduleData[day][slot.value].push({
+                    code: code,
+                    name: name,
+                    tutor: tutor,
+                    group: group,
+                    phone: phone,
+                    phone2: phone2,
+                    duration: duration,
+                    isMainSlot: i === 0
+                });
+                
+                updateCellDisplay(day, slot.value);
+                updateMobileCellDisplay(day, slot.value);
+            }
+            
+            // Clear form
+            document.getElementById('participantCode').value = '';
+            document.getElementById('participantName').value = '';
+            document.getElementById('participantTutor').value = '';
+            document.getElementById('participantGroup').value = '';
+            document.getElementById('participantPhone').value = '';
+            document.getElementById('participantPhone2').value = '';
+            document.getElementById('daySelect').value = '';
+            document.getElementById('timeSelect').value = '';
+            
+            updateSummary();
+            autoSave();
+        }
+
+        // Add mass participants
+        function addMassParticipants() {
+            const massData = document.getElementById('massParticipants').value.trim();
+            if (!massData) {
+                alert('Por favor ingresa los datos de los participantes');
+                return;
+            }
+            
+            const lines = massData.split('\n');
+            let addedCount = 0;
+            
+            lines.forEach(line => {
+                const parts = line.trim().split(',');
+                if (parts.length === 4) {
+                    const [code, name, group, tutor] = parts.map(p => p.trim());
+                    participantDatabase[code.toUpperCase()] = {
+                        name: name,
+                        group: group,
+                        tutor: tutor
+                    };
+                    addedCount++;
+                }
+            });
+            
+            alert(`Se agregaron ${addedCount} participantes a la base de datos`);
+            document.getElementById('massParticipants').value = '';
+            autoSave();
+        }
+
+        // Update cell display (desktop/tablet)
+        function updateCellDisplay(day, time) {
+            const cell = document.getElementById(`${day}-${time}`);
+            if (!cell) return;
+            
+            const participants = scheduleData[day][time] || [];
+            
+            if (participants.length === 0) {
+                cell.innerHTML = '';
+                return;
+            }
+            
+            const remainingSlots = 9 - participants.length;
+            const isComplete = participants.length === 9;
+            
+            cell.innerHTML = `
+                <div class="bg-indigo-100 border border-indigo-300 rounded-lg p-2 relative group ${isComplete ? 'bg-green-100 border-green-300' : ''}">
+                    <div class="text-xs font-semibold mb-1 ${isComplete ? 'text-green-700' : 'text-indigo-700'}">
+                        ${participants.length}/9 participantes
+                        ${!isComplete ? `(${remainingSlots} disponibles)` : '(COMPLETO)'}
+                    </div>
+                    <div class="space-y-1 max-h-20 overflow-y-auto">
+                        ${participants.map((participant, index) => `
+                            <div class="flex justify-between items-center text-xs ${isComplete ? 'text-green-800' : 'text-indigo-800'}">
+                                <div class="flex-1">
+                                    <div class="font-medium">${participant.code} - ${participant.name}</div>
+                                    <div class="text-gray-600">${participant.group} | ${participant.tutor}</div>
+                                    ${showPhoneNumbers && participant.phone ? `<div class="text-gray-600">📱 ${participant.phone}</div>` : ''}
+                                    ${showPhoneNumbers && participant.phone2 ? `<div class="text-gray-600">📱 ${participant.phone2}</div>` : ''}
+                                </div>
+                                <button onclick="removeParticipant('${day}', '${time}', ${index})" 
+                                        class="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity ml-1 touch-button">
+                                    ✕
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update mobile cell display
+        function updateMobileCellDisplay(day, time) {
+            const participantsDiv = document.getElementById(`mobile-participants-${day}-${time}`);
+            if (!participantsDiv) return;
+            
+            const participants = scheduleData[day][time] || [];
+            
+            if (participants.length === 0) {
+                participantsDiv.innerHTML = '<div class="text-gray-500 text-sm italic">Sin participantes</div>';
+                return;
+            }
+            
+            const remainingSlots = 9 - participants.length;
+            const isComplete = participants.length === 9;
+            
+            participantsDiv.innerHTML = `
+                <div class="text-xs font-semibold mb-2 ${isComplete ? 'text-green-700' : 'text-indigo-700'}">
+                    ${participants.length}/9 participantes
+                    ${!isComplete ? `(${remainingSlots} disponibles)` : '(COMPLETO)'}
+                </div>
+                <div class="space-y-2">
+                    ${participants.map((participant, index) => `
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-2 ${isComplete ? 'bg-green-50 border-green-200' : ''}">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="font-medium text-sm ${isComplete ? 'text-green-800' : 'text-indigo-800'}">${participant.code} - ${participant.name}</div>
+                                    <div class="text-xs text-gray-600">${participant.group} | ${participant.tutor}</div>
+                                    ${showPhoneNumbers && participant.phone ? `<div class="text-xs text-gray-600">📱 ${participant.phone}</div>` : ''}
+                                    ${showPhoneNumbers && participant.phone2 ? `<div class="text-xs text-gray-600">📱 ${participant.phone2}</div>` : ''}
+                                </div>
+                                <button onclick="removeParticipant('${day}', '${time}', ${index})" 
+                                        class="text-red-500 hover:text-red-700 ml-2 touch-button">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Remove participant from schedule
+        function removeParticipant(day, time, index) {
+            if (scheduleData[day] && scheduleData[day][time]) {
+                const participant = scheduleData[day][time][index];
+                
+                // If it's a 60-minute participant, remove from both slots
+                if (participant.duration === 60) {
+                    const startIndex = timeSlots.findIndex(slot => slot.value === time);
+                    
+                    // Remove from current slot
+                    scheduleData[day][time].splice(index, 1);
+                    if (scheduleData[day][time].length === 0) {
+                        delete scheduleData[day][time];
+                    }
+                    
+                    // Remove from next slot if it exists
+                    if (startIndex < timeSlots.length - 1) {
+                        const nextSlot = timeSlots[startIndex + 1];
+                        if (scheduleData[day][nextSlot.value]) {
+                            const nextIndex = scheduleData[day][nextSlot.value].findIndex(p => p.code === participant.code);
+                            if (nextIndex !== -1) {
+                                scheduleData[day][nextSlot.value].splice(nextIndex, 1);
+                                if (scheduleData[day][nextSlot.value].length === 0) {
+                                    delete scheduleData[day][nextSlot.value];
+                                }
+                                updateCellDisplay(day, nextSlot.value);
+                                updateMobileCellDisplay(day, nextSlot.value);
+                            }
+                        }
+                    }
+                } else {
+                    // 30-minute participant, remove only from current slot
+                    scheduleData[day][time].splice(index, 1);
+                    if (scheduleData[day][time].length === 0) {
+                        delete scheduleData[day][time];
+                    }
+                }
+                
+                updateCellDisplay(day, time);
+                updateMobileCellDisplay(day, time);
+                updateSummary();
+                autoSave();
+            }
+        }
+
+        // Get scheduled participant codes
+        function getScheduledParticipants() {
+            const scheduled = new Set();
+            Object.values(scheduleData).forEach(dayData => {
+                Object.values(dayData).forEach(participants => {
+                    participants.forEach(participant => {
+                        if (participant.isMainSlot !== false) {
+                            scheduled.add(participant.code);
+                        }
+                    });
+                });
+            });
+            return scheduled;
+        }
+
+        // Get pending participants
+        function getPendingParticipants() {
+            const scheduled = getScheduledParticipants();
+            const pending = [];
+            
+            Object.entries(participantDatabase).forEach(([code, data]) => {
+                if (!scheduled.has(code)) {
+                    pending.push({ code, ...data });
+                }
+            });
+            
+            return pending;
+        }
+
+        // Show pending participants
+        function showPendingParticipants() {
+            const pending = getPendingParticipants();
+            const panel = document.getElementById('pendingPanel');
+            const listContainer = document.getElementById('pendingParticipantsList');
+            
+            if (pending.length === 0) {
+                alert('¡Excelente! Todos los participantes ya están programados en el horario.');
+                return;
+            }
+            
+            // Generate cards for pending participants
+            let cardsHTML = '';
+            pending.forEach(participant => {
+                cardsHTML += `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="font-semibold text-red-800">${participant.code}</div>
+                        <div class="text-red-700 font-medium">${participant.name}</div>
+                        <div class="text-red-600 text-sm mt-1">
+                            <div>📚 ${participant.group}</div>
+                            <div>👨‍🏫 ${participant.tutor}</div>
+                        </div>
+                        <div class="mt-2">
+                            <button onclick="quickSchedule('${participant.code}')" 
+                                    class="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded transition-colors touch-button">
+                                Programar Rápido
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            listContainer.innerHTML = cardsHTML;
+            panel.classList.remove('hidden');
+            
+            // Scroll to panel
+            panel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Hide pending participants panel
+        function hidePendingPanel() {
+            document.getElementById('pendingPanel').classList.add('hidden');
+        }
+
+        // Quick schedule function
+        function quickSchedule(code) {
+            document.getElementById('participantCode').value = code;
+            document.getElementById('participantCode').dispatchEvent(new Event('input'));
+            
+            // Scroll to form
+            document.querySelector('.bg-white.rounded-xl.shadow-lg').scrollIntoView({ behavior: 'smooth' });
+            
+            // Focus on phone field
+            setTimeout(() => {
+                document.getElementById('participantPhone').focus();
+            }, 500);
+        }
+
+        // Update summary statistics
+        function updateSummary() {
+            let totalParticipants = 0;
+            let group911Count = 0;
+            let groupOlderCount = 0;
+            
+            Object.values(scheduleData).forEach(dayData => {
+                Object.values(dayData).forEach(participants => {
+                    participants.forEach(participant => {
+                        if (participant.isMainSlot !== false) { // Count only main slots to avoid duplicates
+                            totalParticipants++;
+                            if (participant.group === 'G9-11') {
+                                group911Count++;
+                            } else {
+                                groupOlderCount++;
+                            }
+                        }
+                    });
+                });
+            });
+            
+            const totalSlots = timeSlots.filter(slot => !slot.isLunch).length * 3; // 3 days, excluding lunch
+            const totalCapacity = totalSlots * 9;
+            const remainingCapacity = totalCapacity - Object.values(scheduleData).reduce((total, dayData) => {
+                return total + Object.values(dayData).reduce((dayTotal, participants) => dayTotal + participants.length, 0);
+            }, 0);
+            
+            // Calculate pending participants
+            const pendingCount = getPendingParticipants().length;
+            
+            document.getElementById('totalParticipants').textContent = totalParticipants;
+            document.getElementById('availableSlots').textContent = remainingCapacity;
+            document.getElementById('group911Count').textContent = group911Count;
+            document.getElementById('groupOlderCount').textContent = groupOlderCount;
+            document.getElementById('pendingCount').textContent = pendingCount;
+        }
+
+        // Show participant database
+        function showParticipantDatabase() {
+            let dbContent = 'Base de Datos de Participantes:\n\n';
+            Object.entries(participantDatabase).forEach(([code, data]) => {
+                dbContent += `${code}: ${data.name} | ${data.group} | Tutor: ${data.tutor}\n`;
+            });
+            alert(dbContent);
+        }
+
+        // Print schedule function
+        function printSchedule(orientation = 'portrait') {
+            const printWindow = window.open('', '_blank');
+            
+            // Determine styles based on orientation
+            const isLandscape = orientation === 'landscape';
+            const pageSize = isLandscape ? 'letter landscape' : 'letter portrait';
+            const bodyMargin = isLandscape ? '10px' : '15px';
+            const fontSize = isLandscape ? '11px' : '12px';
+            const tableFontSize = isLandscape ? '10px' : '11px';
+            const participantFontSize = isLandscape ? '9px' : '10px';
+            const detailsFontSize = isLandscape ? '8px' : '9px';
+            const timeWidth = isLandscape ? '12%' : '15%';
+            const dayWidth = isLandscape ? '29.33%' : '28.33%';
+            const cellPadding = isLandscape ? '4px 3px' : '6px 4px';
+            const minHeight = isLandscape ? '50px' : '60px';
+            
+            let printContent = `
+                <html>
+                <head>
+                    <title>Horarios de Encuestas - ${isLandscape ? 'Horizontal' : 'Vertical'}</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            margin: ${bodyMargin}; 
+                            font-size: ${fontSize};
+                            line-height: 1.3;
+                        }
+                        h1 { 
+                            text-align: center; 
+                            color: #333; 
+                            margin-bottom: 8px;
+                            font-size: ${isLandscape ? '18px' : '20px'};
+                        }
+                        .header-info {
+                            text-align: center;
+                            margin-bottom: ${isLandscape ? '10px' : '15px'};
+                            font-size: ${isLandscape ? '10px' : '11px'};
+                            color: #666;
+                        }
+                        .orientation-info {
+                            text-align: center;
+                            margin-bottom: 10px;
+                            font-size: 10px;
+                            color: #888;
+                            font-style: italic;
+                        }
+                        .privacy-info {
+                            text-align: center;
+                            margin-bottom: 10px;
+                            font-size: 10px;
+                            color: #666;
+                            background-color: #f8f9fa;
+                            padding: 5px;
+                            border-radius: 3px;
+                            border: 1px solid #ddd;
+                        }
+                        .schedule-table { 
+                            width: 100%; 
+                            border-collapse: collapse; 
+                            margin: ${isLandscape ? '8px 0' : '10px 0'};
+                            table-layout: fixed;
+                        }
+                        .schedule-table th { 
+                            background-color: #4f46e5; 
+                            color: white; 
+                            padding: ${isLandscape ? '6px 3px' : '8px 4px'};
+                            text-align: center;
+                            font-weight: bold;
+                            font-size: ${tableFontSize};
+                            border: 1px solid #333;
+                        }
+                        .schedule-table td { 
+                            border: 1px solid #ccc; 
+                            padding: ${cellPadding}; 
+                            vertical-align: top;
+                            min-height: ${minHeight};
+                            font-size: ${participantFontSize};
+                        }
+                        .time-cell {
+                            width: ${timeWidth};
+                            background-color: #f8f9fa;
+                            font-weight: bold;
+                            text-align: center;
+                            color: #333;
+                        }
+                        .day-cell {
+                            width: ${dayWidth};
+                        }
+                        .lunch-row td {
+                            background-color: #fff3cd;
+                            text-align: center;
+                            font-style: italic;
+                            color: #856404;
+                            font-weight: bold;
+                        }
+                        .participant-item { 
+                            margin: ${isLandscape ? '1px 0' : '2px 0'}; 
+                            padding: ${isLandscape ? '2px' : '3px'};
+                            background-color: #f8f9fa;
+                            border-left: 3px solid #4f46e5;
+                            border-radius: 2px;
+                            page-break-inside: avoid;
+                        }
+                        .participant-code { 
+                            font-weight: bold; 
+                            color: #4f46e5;
+                            font-size: ${participantFontSize};
+                        }
+                        .participant-name { 
+                            font-weight: bold;
+                            color: #333;
+                            font-size: ${participantFontSize};
+                            margin: 1px 0;
+                        }
+                        .participant-details { 
+                            color: #666; 
+                            font-size: ${detailsFontSize};
+                            line-height: 1.2;
+                        }
+                        .participant-count {
+                            font-size: ${detailsFontSize};
+                            color: #666;
+                            font-style: italic;
+                            margin-top: ${isLandscape ? '2px' : '3px'};
+                            text-align: center;
+                        }
+                        .summary { 
+                            margin: ${isLandscape ? '10px 0' : '15px 0'}; 
+                            padding: ${isLandscape ? '8px' : '10px'}; 
+                            background-color: #f8f9fa; 
+                            border: 1px solid #ddd;
+                            border-radius: 5px;
+                            page-break-inside: avoid;
+                        }
+                        .summary h3 {
+                            margin: 0 0 6px 0;
+                            font-size: ${isLandscape ? '12px' : '14px'};
+                            color: #333;
+                        }
+                        .summary p {
+                            margin: 2px 0;
+                            font-size: ${isLandscape ? '10px' : '11px'};
+                        }
+                        .summary-grid {
+                            display: grid; 
+                            grid-template-columns: 1fr 1fr; 
+                            gap: ${isLandscape ? '10px' : '15px'};
+                        }
+                        .empty-slot {
+                            color: #999;
+                            font-style: italic;
+                            text-align: center;
+                            padding: ${isLandscape ? '8px' : '10px'};
+                        }
+                        @media print { 
+                            body { margin: ${isLandscape ? '8px' : '10px'}; }
+                            .schedule-table { font-size: ${isLandscape ? '8px' : '9px'}; }
+                            .participant-item { 
+                                margin: ${isLandscape ? '0.5px 0' : '1px 0'}; 
+                                padding: ${isLandscape ? '1px' : '2px'}; 
+                            }
+                        }
+                        @page {
+                            margin: 0.4in;
+                            size: ${pageSize};
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>📋 Horarios de Encuestas</h1>
+                    <div class="header-info">
+                        <strong>Lunes - Miércoles</strong> | 6:30 AM - 3:00 PM | Almuerzo: 12:00 PM - 1:00 PM<br>
+                        Fecha de impresión: ${new Date().toLocaleDateString('es-ES')}
+                    </div>
+                    <div class="orientation-info">
+                        Formato de impresión: ${isLandscape ? 'Horizontal (Landscape)' : 'Vertical (Portrait)'}
+                    </div>
+                    <div class="privacy-info">
+                        🔒 Números telefónicos: ${showPhoneNumbers ? 'VISIBLES' : 'OCULTOS'} (configuración de privacidad aplicada)
+                    </div>
+                    
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th class="time-cell">Horario</th>
+                                <th class="day-cell">Lunes</th>
+                                <th class="day-cell">Martes</th>
+                                <th class="day-cell">Miércoles</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            timeSlots.forEach(slot => {
+                const rowClass = slot.isLunch ? 'lunch-row' : '';
+                printContent += `<tr class="${rowClass}">`;
+                
+                // Time column
+                printContent += `<td class="time-cell">${slot.display}${slot.isLunch ? '<br><small>ALMUERZO</small>' : ''}</td>`;
+                
+                // Day columns
+                ['lunes', 'martes', 'miercoles'].forEach(day => {
+                    const participants = scheduleData[day][slot.value] || [];
+                    printContent += `<td class="day-cell">`;
+                    
+                    if (slot.isLunch) {
+                        printContent += '🍽️ ALMUERZO';
+                    } else if (participants.length > 0) {
+                        participants.forEach(participant => {
+                            printContent += `
+                                <div class="participant-item">
+                                    <div class="participant-code">${participant.code}</div>
+                                    <div class="participant-name">${participant.name}</div>
+                                    <div class="participant-details">
+                                        ${participant.group} | ${participant.tutor}
+                                    </div>
+                                    ${showPhoneNumbers && participant.phone ? `<div class="participant-details">📱 ${participant.phone}</div>` : ''}
+                                    ${showPhoneNumbers && participant.phone2 ? `<div class="participant-details">📱 ${participant.phone2}</div>` : ''}
+                                </div>
+                            `;
+                        });
+                        printContent += `<div class="participant-count">(${participants.length}/9 participantes)</div>`;
+                    } else {
+                        printContent += '<div class="empty-slot">Sin participantes</div>';
+                    }
+                    
+                    printContent += '</td>';
+                });
+                
+                printContent += '</tr>';
+            });
+            
+            // Add summary
+            let totalParticipants = 0;
+            let group911Count = 0;
+            let groupOlderCount = 0;
+            
+            Object.values(scheduleData).forEach(dayData => {
+                Object.values(dayData).forEach(participants => {
+                    participants.forEach(participant => {
+                        if (participant.isMainSlot !== false) {
+                            totalParticipants++;
+                            if (participant.group === 'G9-11') {
+                                group911Count++;
+                            } else {
+                                groupOlderCount++;
+                            }
+                        }
+                    });
+                });
+            });
+            
+            printContent += `
+                        </tbody>
+                    </table>
+                    
+                    <div class="summary">
+                        <h3>📊 Resumen del Horario</h3>
+                        <div class="summary-grid">
+                            <div>
+                                <p><strong>Total de participantes programados:</strong> ${totalParticipants}</p>
+                                <p><strong>Grupo G9-11 años (30 minutos):</strong> ${group911Count}</p>
+                                <p><strong>Grupo G12+ años (60 minutos):</strong> ${groupOlderCount}</p>
+                            </div>
+                            <div>
+                                <p><strong>Participantes pendientes:</strong> ${getPendingParticipants().length}</p>
+                                <p><strong>Total en base de datos:</strong> ${Object.keys(participantDatabase).length}</p>
+                                <p><strong>Orientación:</strong> ${isLandscape ? 'Horizontal' : 'Vertical'}</p>
+                                <p><strong>Números telefónicos:</strong> ${showPhoneNumbers ? 'Visibles' : 'Ocultos'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Save schedule to file
+        function saveSchedule() {
+            const dataToSave = {
+                scheduleData: scheduleData,
+                participantDatabase: participantDatabase,
+                showPhoneNumbers: showPhoneNumbers,
+                timestamp: new Date().toISOString(),
+                version: "2.2"
+            };
+            
+            const dataStr = JSON.stringify(dataToSave, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `horarios_encuestas_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        // Load schedule from file
+        function loadSchedule(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const loadedData = JSON.parse(e.target.result);
+                    
+                    if (loadedData.scheduleData) {
+                        scheduleData.lunes = loadedData.scheduleData.lunes || {};
+                        scheduleData.martes = loadedData.scheduleData.martes || {};
+                        scheduleData.miercoles = loadedData.scheduleData.miercoles || {};
+                        
+                        if (loadedData.participantDatabase) {
+                            participantDatabase = loadedData.participantDatabase;
+                        }
+                        
+                        // Load privacy setting if available
+                        if (loadedData.showPhoneNumbers !== undefined) {
+                            showPhoneNumbers = loadedData.showPhoneNumbers;
+                            updatePhoneToggleUI();
+                        }
+                        
+                        // Update all displays
+                        generateScheduleGrid();
+                        generateMobileScheduleGrid();
+                        updateSummary();
+                        autoSave();
+                        
+                        alert('Datos cargados exitosamente');
+                    } else {
+                        alert('Formato de archivo inválido');
+                    }
+                } catch (error) {
+                    alert('Error al cargar el archivo: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Toggle contacts panel
+        function toggleContactsPanel() {
+            const panel = document.getElementById('contactsPanel');
+            const isHidden = panel.classList.contains('hidden');
+            
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                loadContacts();
+                // Scroll to panel
+                panel.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
+        // Load contacts from scheduled participants
+        function loadContacts() {
+            const contacts = [];
+            const processedCodes = new Set();
+            
+            // Get contacts from scheduled participants
+            Object.values(scheduleData).forEach(dayData => {
+                Object.values(dayData).forEach(participants => {
+                    participants.forEach(participant => {
+                        if (!processedCodes.has(participant.code) && (participant.phone || participant.phone2)) {
+                            processedCodes.add(participant.code);
+                            contacts.push({
+                                code: participant.code,
+                                name: participant.name,
+                                group: participant.group,
+                                tutor: participant.tutor,
+                                phone: participant.phone,
+                                phone2: participant.phone2
+                            });
+                        }
+                    });
+                });
+            });
+            
+            // Sort contacts alphabetically by name
+            contacts.sort((a, b) => a.name.localeCompare(b.name));
+            
+            displayContacts(contacts);
+        }
+
+        // Display contacts in the panel
+        function displayContacts(contacts) {
+            const contactsList = document.getElementById('contactsList');
+            const emptyState = document.getElementById('contactsEmptyState');
+            
+            if (contacts.length === 0) {
+                contactsList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            let contactsHTML = '';
+            contacts.forEach(contact => {
+                contactsHTML += `
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors contact-item" 
+                         data-name="${contact.name.toLowerCase()}" data-code="${contact.code.toLowerCase()}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                                        ${contact.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-gray-800">${contact.name}</div>
+                                        <div class="text-sm text-gray-600">${contact.code} | ${contact.group}</div>
+                                        <div class="text-xs text-gray-500">Tutor: ${contact.tutor}</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Phone numbers and actions -->
+                                ${showPhoneNumbers ? `
+                                <div class="space-y-2">
+                                    ${contact.phone ? `
+                                        <div class="flex items-center justify-between bg-white rounded-lg p-2 border">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-green-600">📱</span>
+                                                <span class="font-medium text-gray-800 text-sm">${contact.phone}</span>
+                                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Principal</span>
+                                            </div>
+                                            <div class="flex gap-1">
+                                                <button onclick="makeCall('${contact.phone}', '${contact.name}')" 
+                                                        class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded-md text-xs transition-colors flex items-center gap-1 touch-button">
+                                                    📞 Llamar
+                                                </button>
+                                                <button onclick="sendSMS('${contact.phone}', '${contact.name}')" 
+                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-md text-xs transition-colors flex items-center gap-1 touch-button">
+                                                    💬 SMS
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${contact.phone2 ? `
+                                        <div class="flex items-center justify-between bg-white rounded-lg p-2 border">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-blue-600">📱</span>
+                                                <span class="font-medium text-gray-800 text-sm">${contact.phone2}</span>
+                                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Secundario</span>
+                                            </div>
+                                            <div class="flex gap-1">
+                                                <button onclick="makeCall('${contact.phone2}', '${contact.name}')" 
+                                                        class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded-md text-xs transition-colors flex items-center gap-1 touch-button">
+                                                    📞 Llamar
+                                                </button>
+                                                <button onclick="sendSMS('${contact.phone2}', '${contact.name}')" 
+                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-md text-xs transition-colors flex items-center gap-1 touch-button">
+                                                    💬 SMS
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                ` : `
+                                <div class="bg-gray-100 rounded-lg p-3 text-center">
+                                    <div class="text-gray-600 text-sm">🔒 Números telefónicos ocultos</div>
+                                    <div class="text-xs text-gray-500 mt-1">Activa la visibilidad para ver los contactos</div>
+                                </div>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            contactsList.innerHTML = contactsHTML;
+        }
+
+        // Filter contacts based on search
+        function filterContacts() {
+            const searchTerm = document.getElementById('contactSearch').value.toLowerCase();
+            const contactItems = document.querySelectorAll('.contact-item');
+            let visibleCount = 0;
+            
+            contactItems.forEach(item => {
+                const name = item.getAttribute('data-name');
+                const code = item.getAttribute('data-code');
+                
+                if (name.includes(searchTerm) || code.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Show/hide empty state based on visible contacts
+            const emptyState = document.getElementById('contactsEmptyState');
+            if (visibleCount === 0 && searchTerm) {
+                emptyState.innerHTML = `
+                    <div class="text-4xl mb-2">🔍</div>
+                    <p>No se encontraron contactos que coincidan con "${searchTerm}"</p>
+                `;
+                emptyState.classList.remove('hidden');
+            } else if (visibleCount === 0) {
+                emptyState.innerHTML = `
+                    <div class="text-4xl mb-2">📱</div>
+                    <p>No hay contactos registrados con números telefónicos</p>
+                `;
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+        }
+
+        // Make a phone call
+        function makeCall(phoneNumber, contactName) {
+            // Clean phone number for tel: protocol
+            const cleanNumber = phoneNumber.replace(/\D/g, '');
+            const telUrl = `tel:+1${cleanNumber}`;
+            
+            // Show confirmation dialog
+            const confirmed = confirm(`¿Llamar a ${contactName}?\n\nNúmero: ${phoneNumber}\n\nEsto abrirá la aplicación de teléfono de tu dispositivo.`);
+            
+            if (confirmed) {
+                // Try to open phone app
+                window.location.href = telUrl;
+                
+                // Fallback: show instructions if the tel: protocol doesn't work
+                setTimeout(() => {
+                    alert(`Si no se abrió automáticamente la aplicación de teléfono, puedes llamar manualmente a:\n\n${phoneNumber}\n\nContacto: ${contactName}`);
+                }, 1000);
+            }
+        }
+
+        // Send SMS
+        function sendSMS(phoneNumber, contactName) {
+            // Clean phone number for sms: protocol
+            const cleanNumber = phoneNumber.replace(/\D/g, '');
+            const smsUrl = `sms:+1${cleanNumber}`;
+            
+            // Show confirmation dialog
+            const confirmed = confirm(`¿Enviar mensaje a ${contactName}?\n\nNúmero: ${phoneNumber}\n\nEsto abrirá la aplicación de mensajes de tu dispositivo.`);
+            
+            if (confirmed) {
+                // Try to open SMS app
+                window.location.href = smsUrl;
+                
+                // Fallback: show instructions if the sms: protocol doesn't work
+                setTimeout(() => {
+                    alert(`Si no se abrió automáticamente la aplicación de mensajes, puedes enviar un SMS manualmente a:\n\n${phoneNumber}\n\nContacto: ${contactName}`);
+                }, 1000);
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            populateTimeSelect();
+            generateScheduleGrid();
+            generateMobileScheduleGrid();
+            updateSummary();
+            loadAutoSave(); // Load auto-saved data
+            
+            // Setup phone formatting for both fields
+            setupPhoneFormatting('participantPhone');
+            setupPhoneFormatting('participantPhone2');
+        });
+
+        // Handle Enter key in participant code input
+        document.getElementById('participantCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('participantPhone').focus();
+            }
+        });
+        
+        // Handle Enter key in participant phone input
+        document.getElementById('participantPhone').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addParticipant();
+            }
+        });
+
+        // Add event listeners for auto-save
+        document.addEventListener('change', autoSave);
+        document.addEventListener('input', autoSave);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9723e6e121e7f77e',t:'MTc1NTcxMzk5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
