@@ -2883,6 +2883,16 @@
           "phone2": "",
           "duration": 30,
           "isMainSlot": true
+        },
+        {
+          "code": "155",
+          "name": "Valentina León Galvis",
+          "tutor": "Luz Marina Combariza Higuera",
+          "group": "G19+",
+          "phone": "(322) 278-3961",
+          "phone2": "",
+          "duration": 60,
+          "isMainSlot": false
         }
       ],
       "07:30": [
@@ -2941,6 +2951,16 @@
           "tutor": "Proyecto 660 Crecer",
           "group": "Staff",
           "phone": "(312) 461-2384",
+          "phone2": "",
+          "duration": 60,
+          "isMainSlot": true
+        },
+        {
+          "code": "155",
+          "name": "Valentina León Galvis",
+          "tutor": "Luz Marina Combariza Higuera",
+          "group": "G19+",
+          "phone": "(322) 278-3961",
           "phone2": "",
           "duration": 60,
           "isMainSlot": true
@@ -4074,7 +4094,7 @@
     }
   },
   "showPhoneNumbers": true,
-  "timestamp": "2025-08-21T17:58:12.951Z",
+  "timestamp": "2025-08-21T17:58:27.829Z",
   "version": "2.3-github",
   "githubConfig": {
     "owner": "Adrian-VGA",
