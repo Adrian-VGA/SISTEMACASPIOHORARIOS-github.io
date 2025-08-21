@@ -65,6 +65,16 @@
           "phone2": "",
           "duration": 60,
           "isMainSlot": true
+        },
+        {
+          "code": "001",
+          "name": "Angie Daniela Soto García",
+          "tutor": "Gina Brigitte Quintero Orjuela",
+          "group": "G19+",
+          "phone": "(321) 695-9027",
+          "phone2": "",
+          "duration": 60,
+          "isMainSlot": true
         }
       ],
       "14:30": [
@@ -307,6 +317,16 @@
           "tutor": "Gina Brigitte Quintero Orjuela",
           "group": "G19+",
           "phone": "(323) 280-5412",
+          "phone2": "",
+          "duration": 60,
+          "isMainSlot": false
+        },
+        {
+          "code": "001",
+          "name": "Angie Daniela Soto García",
+          "tutor": "Gina Brigitte Quintero Orjuela",
+          "group": "G19+",
+          "phone": "(321) 695-9027",
           "phone2": "",
           "duration": 60,
           "isMainSlot": false
@@ -4072,7 +4092,7 @@
     }
   },
   "showPhoneNumbers": true,
-  "timestamp": "2025-08-21T17:56:21.587Z",
+  "timestamp": "2025-08-21T17:56:23.896Z",
   "version": "2.3-github",
   "githubConfig": {
     "owner": "Adrian-VGA",
