@@ -3,15 +3,6 @@
     "lunes": {
       "06:30": [
         {
-          "code": "001",
-          "name": "Angie Daniela Soto García",
-          "tutor": "Gina Brigitte Quintero Orjuela",
-          "group": "G19+",
-          "phone": "(321) 695-9027",
-          "duration": 60,
-          "isMainSlot": true
-        },
-        {
           "code": "106",
           "name": "Aura Xiomara Torres Sánchez",
           "tutor": "Gina Brigitte Quintero Orjuela",
@@ -4099,7 +4090,7 @@
     }
   },
   "showPhoneNumbers": true,
-  "timestamp": "2025-08-21T17:52:55.643Z",
+  "timestamp": "2025-08-21T17:53:02.472Z",
   "version": "2.3-github",
   "githubConfig": {
     "owner": "Adrian-VGA",
