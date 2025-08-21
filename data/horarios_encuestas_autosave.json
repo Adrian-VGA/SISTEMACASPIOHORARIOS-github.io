@@ -699,15 +699,6 @@
       ],
       "07:30": [
         {
-          "code": "155",
-          "name": "Valentina León Galvis",
-          "tutor": "Luz Marina Combariza Higuera",
-          "group": "G19+",
-          "phone": "(322) 278-3961",
-          "duration": 60,
-          "isMainSlot": true
-        },
-        {
           "code": "390",
           "name": "Jhony Estiver Rivera Pérez",
           "tutor": "Esperanza Garcia Yañez",
@@ -748,15 +739,6 @@
         }
       ],
       "08:00": [
-        {
-          "code": "155",
-          "name": "Valentina León Galvis",
-          "tutor": "Luz Marina Combariza Higuera",
-          "group": "G19+",
-          "phone": "(322) 278-3961",
-          "duration": 60,
-          "isMainSlot": false
-        },
         {
           "code": "267",
           "name": "Shirley Natalia Correa Arenis",
@@ -4092,7 +4074,7 @@
     }
   },
   "showPhoneNumbers": true,
-  "timestamp": "2025-08-21T17:56:23.896Z",
+  "timestamp": "2025-08-21T17:57:18.716Z",
   "version": "2.3-github",
   "githubConfig": {
     "owner": "Adrian-VGA",
