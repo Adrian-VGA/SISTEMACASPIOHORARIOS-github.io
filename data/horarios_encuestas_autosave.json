@@ -1463,15 +1463,6 @@
       ],
       "09:00": [
         {
-          "code": "056",
-          "name": "Iván Yue León Galvis",
-          "tutor": "Gina Brigitte Quintero Orjuela",
-          "group": "G19+",
-          "phone": "(311) 230-1143",
-          "duration": 60,
-          "isMainSlot": true
-        },
-        {
           "code": "632",
           "name": "Kevin David Vizcaíno Galindo",
           "tutor": "Esperanza Garcia Yañez",
@@ -1493,15 +1484,6 @@
         }
       ],
       "09:30": [
-        {
-          "code": "056",
-          "name": "Iván Yue León Galvis",
-          "tutor": "Gina Brigitte Quintero Orjuela",
-          "group": "G19+",
-          "phone": "(311) 230-1143",
-          "duration": 60,
-          "isMainSlot": false
-        },
         {
           "code": "632",
           "name": "Kevin David Vizcaíno Galindo",
@@ -4094,7 +4076,7 @@
     }
   },
   "showPhoneNumbers": true,
-  "timestamp": "2025-08-21T17:58:27.829Z",
+  "timestamp": "2025-08-21T17:58:43.355Z",
   "version": "2.3-github",
   "githubConfig": {
     "owner": "Adrian-VGA",
