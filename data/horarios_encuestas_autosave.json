@@ -736,6 +736,16 @@
           "phone2": "",
           "duration": 30,
           "isMainSlot": true
+        },
+        {
+          "code": "336",
+          "name": "Luis Eduardo Ortiz Campo",
+          "tutor": "Esperanza Garcia Yañez",
+          "group": "G15-18",
+          "phone": "(320) 436-6570",
+          "phone2": "",
+          "duration": 60,
+          "isMainSlot": true
         }
       ],
       "08:00": [
@@ -811,6 +821,16 @@
           "tutor": "Sandra Milena Galindo Mendez",
           "group": "G12-14",
           "phone": "(313) 316-2252",
+          "phone2": "",
+          "duration": 60,
+          "isMainSlot": false
+        },
+        {
+          "code": "336",
+          "name": "Luis Eduardo Ortiz Campo",
+          "tutor": "Esperanza Garcia Yañez",
+          "group": "G15-18",
+          "phone": "(320) 436-6570",
           "phone2": "",
           "duration": 60,
           "isMainSlot": false
@@ -4096,7 +4116,7 @@
     }
   },
   "showPhoneNumbers": true,
-  "timestamp": "2025-08-21T18:02:21.773Z",
+  "timestamp": "2025-08-21T18:02:27.437Z",
   "version": "2.3-github",
   "githubConfig": {
     "owner": "Adrian-VGA",
