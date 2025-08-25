@@ -657,7 +657,7 @@
                 }
                 
                 const data = await response.json();
-                const content = JSON.parse(atob(data.content));
+                const content = JSON.parse(base64ToUtf8(data.content));
                 
                 return {
                     content: content,
@@ -666,6 +666,33 @@
             } catch (error) {
                 console.error('Error loading from GitHub:', error);
                 return null;
+            }
+        }
+        
+        // UTF-8 safe base64 encoding/decoding functions
+        function utf8ToBase64(str) {
+            try {
+                // Convert string to UTF-8 bytes and then to base64
+                return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                    return String.fromCharCode('0x' + p1);
+                }));
+            } catch (error) {
+                console.error('Error encoding to base64:', error);
+                // Fallback to regular btoa if the above fails
+                return btoa(str);
+            }
+        }
+        
+        function base64ToUtf8(str) {
+            try {
+                // Decode from base64 and then from UTF-8 bytes
+                return decodeURIComponent(atob(str).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+            } catch (error) {
+                console.error('Error decoding from base64:', error);
+                // Fallback to regular atob if the above fails
+                return atob(str);
             }
         }
         
@@ -678,7 +705,7 @@
                 
                 const requestBody = {
                     message: `Auto-save horarios encuestas - ${new Date().toLocaleString('es-ES')}`,
-                    content: btoa(JSON.stringify(data, null, 2)),
+                    content: utf8ToBase64(JSON.stringify(data, null, 2)),
                     branch: githubConfig.branch
                 };
                 
